@@ -12,16 +12,13 @@ import Contact from './Contact';
 const ProjectDetail = () => {
     // Prevent any scroll behavior immediately
     React.useLayoutEffect(() => {
-        // Disable smooth scrolling temporarily
         const originalScrollBehavior = document.documentElement.style.scrollBehavior;
         document.documentElement.style.scrollBehavior = 'auto';
         
-        // Force immediate scroll to top
         window.scrollTo(0, 0);
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
         
-        // Restore scroll behavior after a brief moment
         setTimeout(() => {
             document.documentElement.style.scrollBehavior = originalScrollBehavior;
         }, 100);
@@ -35,6 +32,8 @@ const ProjectDetail = () => {
     const project = projects.find(p => p.id === parseInt(projectId));
     const [mainImage, setMainImage] = useState(null);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [loadedImages, setLoadedImages] = useState(new Set());
+    const [imageErrors, setImageErrors] = useState(new Set());
 
     const cssStyles = `
         * {
@@ -373,7 +372,7 @@ const ProjectDetail = () => {
             cursor: pointer;
             transition: all 0.4s ease;
             box-shadow: none;
-            background: transparent;
+            background: rgba(15, 15, 15, 0.5);
         }
 
         .gallery-main:hover {
@@ -388,6 +387,35 @@ const ProjectDetail = () => {
             object-position: center;
             background: transparent;
             transition: all 0.4s ease;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .gallery-main-image.loaded {
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .image-skeleton {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                rgba(30, 30, 30, 0.5) 25%,
+                rgba(50, 50, 50, 0.5) 50%,
+                rgba(30, 30, 30, 0.5) 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
 
         .gallery-main:hover .gallery-main-image {
@@ -409,6 +437,8 @@ const ProjectDetail = () => {
             transition: all 0.3s ease;
             overflow: hidden;
             border-radius: 8px;
+            background: rgba(15, 15, 15, 0.5);
+            position: relative;
         }
 
         .thumbnail:hover,
@@ -420,6 +450,12 @@ const ProjectDetail = () => {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .thumbnail-image.loaded {
+            opacity: 1;
         }
 
         .content-section {
@@ -571,7 +607,6 @@ const ProjectDetail = () => {
             transform: scale(1.1);
         }
 
-        /* Desktop optimizations */
         @media (min-width: 1200px) {
             .project-detail {
                 padding: 0 3rem;
@@ -607,7 +642,6 @@ const ProjectDetail = () => {
             }
         }
 
-        /* Tablet breakpoint */
         @media (max-width: 1024px) {
             .hero-layout {
                 grid-template-columns: 1fr;
@@ -646,7 +680,6 @@ const ProjectDetail = () => {
             }
         }
 
-        /* Mobile breakpoint */
         @media (max-width: 768px) {
             .project-detail {
                 padding: 0 1rem;
@@ -790,7 +823,6 @@ const ProjectDetail = () => {
             }
         }
 
-        /* Additional styles for imported components */
         .project-detail .header {
             position: sticky;
             top: 0;
@@ -806,19 +838,16 @@ const ProjectDetail = () => {
             margin-top: 1rem;
         }
 
-        /* Ensure Experience and Contact components fit the theme */
         .project-detail #experience,
         .project-detail #contact {
             background: transparent;
             color: inherit;
         }
 
-        /* Override any conflicting styles from imported components */
         .project-detail * {
             color: inherit;
         }
 
-        /* Small mobile - Extra responsive adjustments */
         @media (max-width: 480px) {
             .project-detail {
                 padding: 0 0.75rem;
@@ -893,7 +922,6 @@ const ProjectDetail = () => {
         }
     `;
 
-    // Use project-specific data instead of mock data
     const projectFeatures = project.keyFeatures || [
         "Interactive course dashboard",
         "Secure payment processing", 
@@ -907,20 +935,54 @@ const ProjectDetail = () => {
         "Creating responsive design for multiple device types"
     ];
 
-const aboutProject = project.aboutProject || project.longDescription || project.description;
+    const aboutProject = project.aboutProject || project.longDescription || project.description;
+
+    // Image loading handler
+    const handleImageLoad = (src) => {
+        setLoadedImages(prev => new Set([...prev, src]));
+    };
+
+    const handleImageError = (src) => {
+        setImageErrors(prev => new Set([...prev, src]));
+        console.error(`Failed to load image: ${src}`);
+    };
+
+    // Preload first image
+    useEffect(() => {
+        if (project?.screenshots?.length > 0) {
+            const firstImage = project.screenshots[0];
+            setMainImage(firstImage);
+            
+            // Preload the first image
+            const img = new Image();
+            img.onload = () => handleImageLoad(firstImage);
+            img.onerror = () => handleImageError(firstImage);
+            img.src = firstImage;
+
+            // Lazy load other images after a delay
+            const timer = setTimeout(() => {
+                project.screenshots.slice(1).forEach((src, index) => {
+                    setTimeout(() => {
+                        const img = new Image();
+                        img.onload = () => handleImageLoad(src);
+                        img.onerror = () => handleImageError(src);
+                        img.src = src;
+                    }, index * 200); // Stagger loading by 200ms
+                });
+            }, 1000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [project]);
+
     // Inject styles
     useEffect(() => {        
         const styleElement = document.createElement('style');
         styleElement.textContent = cssStyles;
         document.head.appendChild(styleElement);
         
-        // Set initial main image
-        if (project?.screenshots?.length > 0) {
-            setMainImage(project.screenshots[0]);
-        }
-        
         return () => document.head.removeChild(styleElement);
-    }, [project]);
+    }, []);
 
     if (!project) {
         return (
@@ -947,7 +1009,6 @@ const aboutProject = project.aboutProject || project.longDescription || project.
         <div className="project-detail">
             <div className="animated-bg"></div>
             
-            {/* Add Header component */}
             <Header />
             
             <div className="content">
@@ -1010,10 +1071,17 @@ const aboutProject = project.aboutProject || project.longDescription || project.
                                         className="gallery-main"
                                         onClick={() => setSelectedImage(mainImage)}
                                     >
+                                        {!loadedImages.has(mainImage) && !imageErrors.has(mainImage) && (
+                                            <div className="image-skeleton" />
+                                        )}
                                         <img 
                                             src={mainImage || project.screenshots[0]} 
                                             alt={`${project.title} main screenshot`}
-                                            className="gallery-main-image"
+                                            className={`gallery-main-image ${loadedImages.has(mainImage) ? 'loaded' : ''}`}
+                                            loading="eager"
+                                            onLoad={() => handleImageLoad(mainImage)}
+                                            onError={() => handleImageError(mainImage)}
+                                            style={{ display: imageErrors.has(mainImage) ? 'none' : 'block' }}
                                         />
                                     </div>
                                     
@@ -1025,10 +1093,17 @@ const aboutProject = project.aboutProject || project.longDescription || project.
                                                     className={`thumbnail ${src === mainImage ? 'active' : ''}`}
                                                     onClick={() => setMainImage(src)}
                                                 >
+                                                    {!loadedImages.has(src) && !imageErrors.has(src) && (
+                                                        <div className="image-skeleton" />
+                                                    )}
                                                     <img 
                                                         src={src} 
                                                         alt={`Thumbnail ${index + 1}`}
-                                                        className="thumbnail-image"
+                                                        className={`thumbnail-image ${loadedImages.has(src) ? 'loaded' : ''}`}
+                                                        loading="lazy"
+                                                        onLoad={() => handleImageLoad(src)}
+                                                        onError={() => handleImageError(src)}
+                                                        style={{ display: imageErrors.has(src) ? 'none' : 'block' }}
                                                     />
                                                 </div>
                                             ))}
@@ -1102,7 +1177,6 @@ const aboutProject = project.aboutProject || project.longDescription || project.
                     </div>
                 </div>
 
-                {/* Add Experience and Contact sections below Key Features & Challenges */}
                 <div id="experience">
                     <Experience />
                 </div>
@@ -1112,7 +1186,6 @@ const aboutProject = project.aboutProject || project.longDescription || project.
 
             </div>
 
-            {/* Add Footer component */}
             <Footer />
 
             {selectedImage && (
@@ -1128,6 +1201,7 @@ const aboutProject = project.aboutProject || project.longDescription || project.
                         alt="Enlarged view"
                         className="modal-image"
                         onClick={e => e.stopPropagation()}
+                        loading="lazy"
                     />
                 </div>
             )}
