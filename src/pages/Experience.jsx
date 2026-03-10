@@ -6,9 +6,10 @@ const Experience = () => {
   const experiences = [
     {
       id: 1,
-      title: "Python Fullstack Developer Intern",
+      title: "Python Fullstack Developer",
       company: "Spypro Security Solutions Pvt.Ltd.",
       duration: "Oct 2025 - Present",
+      
       location: "Hyderabad, India",
       type: "Full-time",
       achievements: [
