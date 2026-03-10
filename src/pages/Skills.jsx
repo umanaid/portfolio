@@ -165,6 +165,27 @@ const Skills = () => {
       level: 75,
       icon: '☁️',
       description: 'Cloud deployment, services, infrastructure management'
+    },
+    {
+      name: 'AI',
+      category: 'AI & Machine Learning',
+      level: 82,
+      icon: '🤖',
+      description: 'Artificial Intelligence concepts, applications, and implementations'
+    },
+    {
+      name: 'Machine Learning',
+      category: 'AI & Machine Learning',
+      level: 80,
+      icon: '📊',
+      description: 'ML algorithms, model training, data preprocessing'
+    },
+    {
+      name: 'Deep Learning',
+      category: 'AI & Machine Learning',
+      level: 78,
+      icon: '🧠',
+      description: 'Neural networks, CNNs, RNNs, TensorFlow/PyTorch'
     }
   ];
 

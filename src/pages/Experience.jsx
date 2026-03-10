@@ -6,11 +6,25 @@ const Experience = () => {
   const experiences = [
     {
       id: 1,
-      title: "Python Fullstack Developer",
-      company: "BigEBrains Pvt. Ltd.",
-      duration: "Apr 2025 - Present",
+      title: "Python Fullstack Developer Intern",
+      company: "Spypro Security Solutions Pvt.Ltd.",
+      duration: "Oct 2025 - Present",
       location: "Hyderabad, India",
       type: "Full-time",
+      achievements: [
+        "Engineer scalable web applications using Django/FastAPI and React.js with secure RESTful API integrations.",
+        "Build and maintain backend services and APIs to support dynamic web application features and data workflows.",
+        "Leverage AI/ML techniques for intelligent application features and data analysis workflows.",
+        "Conduct training sessions on AI, Machine Learning, Data Science, and Power BI with hands-on projects."
+      ]
+    },
+    {
+      id: 2,
+      title: "Python Fullstack Developer Intern",
+      company: "BigEBrains Pvt. Ltd.",
+      duration: "Apr 2025 - Oct 2025",
+      location: "Hyderabad, India",
+      type: "Internship",
       achievements: [
         "Developed and maintained full-stack applications using Python (Django/FastAPI) and JavaScript (React.js), improving application responsiveness and scalability.",
         "Implemented RESTful APIs and integrated backend systems, enabling seamless communication between client and server components.",
@@ -19,7 +33,7 @@ const Experience = () => {
       ]
     },
     {
-      id: 2,
+      id: 3,
       title: "Python Full Stack Intern",
       company: "Codegnan IT Solutions Pvt. Ltd.",
       duration: "Feb 2024 - Jun 2024",
